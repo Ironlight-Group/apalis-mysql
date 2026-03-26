@@ -5,15 +5,7 @@ SELECT
 FROM
     jobs
 WHERE
-    id COLLATE utf8mb4_unicode_ci IN (
-        SELECT
-            jt.value COLLATE utf8mb4_unicode_ci
-        FROM
-            JSON_TABLE(
-                CAST(? AS JSON), '$[*]'
-                COLUMNS (value VARCHAR(255) PATH '$')
-            ) AS jt
-    )
+    JSON_CONTAINS(?, JSON_QUOTE(id))
     AND (
         status = 'Done'
         OR (

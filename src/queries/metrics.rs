@@ -50,7 +50,6 @@ where
             let rec = sqlx::query_file_as!(
                 StatisticRow,
                 "queries/backend/overview_by_queue.sql",
-                // yeah mysql is dumb like that
                 queue_id,
                 queue_id,
                 queue_id,

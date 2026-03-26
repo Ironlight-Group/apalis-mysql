@@ -10,13 +10,23 @@ struct QueueInfoRow {
     activity: serde_json::Value,
 }
 
+fn decode_json_field<T>(value: serde_json::Value) -> T
+where
+    T: serde::de::DeserializeOwned + Default,
+{
+    match value {
+        serde_json::Value::String(raw) => serde_json::from_str(&raw).unwrap_or_default(),
+        other => serde_json::from_value(other).unwrap_or_default(),
+    }
+}
+
 impl From<QueueInfoRow> for QueueInfo {
     fn from(row: QueueInfoRow) -> Self {
         Self {
             name: row.name.unwrap_or_default(),
-            stats: serde_json::from_value(row.stats).unwrap(),
-            workers: serde_json::from_value(row.workers).unwrap(),
-            activity: serde_json::from_value(row.activity).unwrap(),
+            stats: decode_json_field(row.stats),
+            workers: decode_json_field(row.workers),
+            activity: decode_json_field(row.activity),
         }
     }
 }

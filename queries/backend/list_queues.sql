@@ -187,6 +187,17 @@ all_job_types AS (
     SELECT worker_type AS job_type FROM workers
     UNION
     SELECT job_type FROM jobs
+),
+daily_activity AS (
+    SELECT
+        job_type,
+        DATE(FROM_UNIXTIME(run_at)) AS run_day,
+        COUNT(*) AS daily_count
+    FROM jobs
+    WHERE run_at >= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 7 DAY))
+    GROUP BY
+        job_type,
+        DATE(FROM_UNIXTIME(run_at))
 )
 SELECT
     jt.job_type as name,
@@ -202,15 +213,9 @@ SELECT
     ) as workers,
     COALESCE(
         (
-            SELECT JSON_ARRAYAGG(daily_count)
-            FROM (
-                SELECT COUNT(*) as daily_count
-                FROM jobs
-                WHERE job_type = jt.job_type
-                  AND run_at >= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 7 DAY))
-                GROUP BY DATE(FROM_UNIXTIME(run_at))
-                ORDER BY DATE(FROM_UNIXTIME(run_at))
-            ) x
+            SELECT JSON_ARRAYAGG(da.daily_count ORDER BY da.run_day)
+            FROM daily_activity da
+            WHERE da.job_type = jt.job_type
         ),
         JSON_ARRAY()
     ) as activity
