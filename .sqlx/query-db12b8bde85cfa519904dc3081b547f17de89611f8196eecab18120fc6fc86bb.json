@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "SELECT\n    *\nFROM\n    workers\nORDER BY\n    last_seen DESC\nLIMIT\n    ? OFFSET ?\n",
+  "query": "SELECT\n    id,\n    worker_type,\n    storage_name,\n    layers,\n    last_seen,\n    started_at\nFROM\n    workers\nORDER BY\n    last_seen DESC\nLIMIT\n    ? OFFSET ?\n",
   "describe": {
     "columns": [
       {
@@ -70,5 +70,5 @@
       true
     ]
   },
-  "hash": "edbf4ac738186c1c68854c7c0999d0a58bca4014e682a0dc39489f26dba568a0"
+  "hash": "db12b8bde85cfa519904dc3081b547f17de89611f8196eecab18120fc6fc86bb"
 }

@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "SELECT\n    *\nFROM\n    jobs\nWHERE\n    job_type = ?\n    AND (\n        (\n            status = 'Pending'\n            AND lock_by IS NULL\n        )\n        OR (\n            status = 'Failed'\n            AND attempts < max_attempts\n        )\n    )\n    AND (\n        run_at IS NULL\n        OR run_at <= ?\n    )\nORDER BY\n    priority DESC,\n    run_at ASC,\n    id ASC\nLIMIT\n    ? FOR\nUPDATE\n    SKIP LOCKED;\n",
+  "query": "SELECT\n    job,\n    id,\n    job_type,\n    status,\n    attempts,\n    max_attempts,\n    priority,\n    run_at,\n    last_result,\n    lock_at,\n    lock_by,\n    done_at,\n    metadata\nFROM\n    jobs\nWHERE\n    job_type = ?\n    AND (\n        (\n            status = 'Pending'\n            AND lock_by IS NULL\n        )\n        OR (\n            status = 'Failed'\n            AND attempts < max_attempts\n        )\n    )\n    AND (\n        run_at IS NULL\n        OR run_at <= ?\n    )\nORDER BY\n    priority DESC,\n    run_at ASC,\n    id ASC\nLIMIT\n    ? FOR\nUPDATE\n    SKIP LOCKED;\n",
   "describe": {
     "columns": [
       {
@@ -140,5 +140,5 @@
       true
     ]
   },
-  "hash": "3bb5cd05cbbf2683e7e8cbf1e7d41c3b590693cac3fd619e69765cf25709ed70"
+  "hash": "4ff22739ba6ea05253d822be9783c73ea19b98b678be798534a2ed0455816114"
 }

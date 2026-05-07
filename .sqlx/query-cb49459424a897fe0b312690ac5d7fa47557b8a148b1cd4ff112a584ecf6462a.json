@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "SELECT\n    *\nFROM\n    jobs\nWHERE\n    JSON_CONTAINS(?, JSON_QUOTE(job_type))\n    AND (\n        (\n            status = 'Pending'\n            AND lock_by IS NULL\n        )\n        OR (\n            status = 'Failed'\n            AND attempts < max_attempts\n        )\n    )\n    AND (\n        run_at IS NULL\n        OR run_at <= ?\n    )\nORDER BY\n    priority DESC,\n    run_at ASC,\n    id ASC\nLIMIT\n    ? FOR\nUPDATE\n    SKIP LOCKED;\n",
+  "query": "SELECT\n    job,\n    id,\n    job_type,\n    status,\n    attempts,\n    max_attempts,\n    priority,\n    run_at,\n    last_result,\n    lock_at,\n    lock_by,\n    done_at,\n    metadata\nFROM\n    jobs\nWHERE\n    status = ?\nORDER BY\n    done_at DESC,\n    run_at DESC\nLIMIT\n    ? OFFSET ?\n",
   "describe": {
     "columns": [
       {
@@ -140,5 +140,5 @@
       true
     ]
   },
-  "hash": "80546dfd433ebfe58f79903be7e75586c08bfbd7089219ff4a16f2760c0e15a6"
+  "hash": "cb49459424a897fe0b312690ac5d7fa47557b8a148b1cd4ff112a584ecf6462a"
 }

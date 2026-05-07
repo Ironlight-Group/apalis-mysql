@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "SELECT\n    *\nFROM\n    jobs\nWHERE\n    status = ?\nORDER BY\n    done_at DESC,\n    run_at DESC\nLIMIT\n    ? OFFSET ?\n",
+  "query": "SELECT\n    job,\n    id,\n    job_type,\n    status,\n    attempts,\n    max_attempts,\n    priority,\n    run_at,\n    last_result,\n    lock_at,\n    lock_by,\n    done_at,\n    metadata\nFROM\n    jobs\nWHERE\n    id = ?\nLIMIT\n    1;\n",
   "describe": {
     "columns": [
       {
@@ -122,7 +122,7 @@
       }
     ],
     "parameters": {
-      "Right": 3
+      "Right": 1
     },
     "nullable": [
       false,
@@ -140,5 +140,5 @@
       true
     ]
   },
-  "hash": "19f0e0d51f9d556ce19268c4d1f7b655b4828da876bf5adf0ca2f71ffc1cb908"
+  "hash": "ddc83874cca21b2991619ae71c75edc5ada71270b5a79154f876aea9d5077f84"
 }
