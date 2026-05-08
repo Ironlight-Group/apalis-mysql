@@ -6,6 +6,11 @@ SET
     lock_by = ?
 WHERE
     id = ?
+    AND EXISTS (
+        SELECT 1
+        FROM workers
+        WHERE id = ?
+    )
     AND (
         status = 'Queued'
         OR status = 'Pending'

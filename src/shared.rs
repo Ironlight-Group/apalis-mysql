@@ -11,7 +11,7 @@ use crate::{
     CompactType, Config, MySqlContext, MySqlStorage, MySqlTask,
     ack::{LockTaskLayer, MySqlAck},
     fetcher::MySqlPollFetcher,
-    initial_heartbeat, keep_alive,
+    queries::keep_alive::{bootstrap_worker, keep_alive_stream},
 };
 use crate::{from_row::MySqlTaskRow, sink::MySqlSink};
 
@@ -233,17 +233,10 @@ where
     type Layer = Stack<AcknowledgeLayer<MySqlAck>, LockTaskLayer>;
 
     fn heartbeat(&self, worker: &WorkerContext) -> Self::Beat {
-        let keep_alive_interval = *self.config.keep_alive();
         let pool = self.pool.clone();
         let worker = worker.clone();
         let config = self.config.clone();
-
-        stream::unfold((), move |()| async move {
-            apalis_core::timer::sleep(keep_alive_interval).await;
-            Some(((), ()))
-        })
-        .then(move |_| keep_alive(pool.clone(), config.clone(), worker.clone()))
-        .boxed()
+        keep_alive_stream(pool, config, worker, "SharedMySqlStorage").boxed()
     }
 
     fn middleware(&self) -> Self::Layer {
@@ -299,7 +292,7 @@ impl<Args, Decode: Send + 'static> MySqlStorage<Args, Decode, SharedFetcher<Comp
         // This also ensures that the worker is marked as alive in case it crashes
         // before fetching any tasks
         // Subsequent heartbeats are handled in the heartbeat stream
-        let init = initial_heartbeat(
+        let init = bootstrap_worker(
             pool,
             self.config.clone(),
             worker.clone(),

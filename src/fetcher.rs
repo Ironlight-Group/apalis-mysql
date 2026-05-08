@@ -50,7 +50,7 @@ pub async fn fetch_next(
 
     let placeholders = ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
     let update_query = format!(
-        "UPDATE jobs SET status = 'Queued', lock_by = ?, lock_at = ? WHERE id IN ({})",
+        "UPDATE jobs SET status = 'Queued', lock_by = ?, lock_at = ? WHERE id IN ({}) AND EXISTS (SELECT 1 FROM workers WHERE id = ?)",
         placeholders
     );
 
@@ -59,8 +59,14 @@ pub async fn fetch_next(
     for id in &ids {
         query = query.bind(id);
     }
+    query = query.bind(&worker);
 
-    query.execute(&mut *tx).await?;
+    let update_res = query.execute(&mut *tx).await?;
+    if update_res.rows_affected() != ids.len() as u64 {
+        return Err(sqlx::Error::Protocol(
+            "WORKER_NOT_REGISTERED_OR_TASKS_NOT_LOCKED".to_string(),
+        ));
+    }
 
     // Convert rows to tasks
     let res = rows

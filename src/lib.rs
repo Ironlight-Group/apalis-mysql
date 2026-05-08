@@ -10,7 +10,7 @@ use apalis_core::{
 };
 use apalis_sql::context::SqlContext;
 use futures::{
-    FutureExt, Stream, StreamExt, TryStreamExt,
+    Stream, StreamExt, TryStreamExt,
     stream::{self, BoxStream},
 };
 pub use sqlx::{
@@ -26,7 +26,7 @@ use crate::{
     ack::{LockTaskLayer, MySqlAck},
     fetcher::{MySqlFetcher, MySqlPollFetcher},
     queries::{
-        keep_alive::{initial_heartbeat, keep_alive, keep_alive_stream},
+        keep_alive::{bootstrap_worker, keep_alive_stream},
         reenqueue_orphaned::reenqueue_orphaned_stream,
     },
     sink::MySqlSink,
@@ -233,7 +233,7 @@ where
         let pool = self.pool.clone();
         let config = self.config.clone();
         let worker = worker.clone();
-        let keep_alive = keep_alive_stream(pool, config, worker);
+        let keep_alive = keep_alive_stream(pool, config, worker, "MySqlStorage");
         let reenqueue = reenqueue_orphaned_stream(
             self.pool.clone(),
             self.config.clone(),
@@ -289,13 +289,13 @@ impl<Args, Decode: Send + 'static, F> MySqlStorage<Args, Decode, F> {
         worker: &WorkerContext,
     ) -> impl Stream<Item = Result<Option<MySqlTask<CompactType>>, sqlx::Error>> + Send + 'static
     {
-        let fut = initial_heartbeat(
+        let fut = bootstrap_worker(
             self.pool.clone(),
             self.config().clone(),
             worker.clone(),
             "MySqlStorage",
         );
-        let register = stream::once(fut.map(|_| Ok(None)));
+        let register = stream::once(fut).map(|res| res.map(|_| None));
         register.chain(MySqlPollFetcher::<CompactType, Decode>::new(
             &self.pool,
             &self.config,

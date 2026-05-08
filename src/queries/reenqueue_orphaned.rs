@@ -13,17 +13,20 @@ pub fn reenqueue_orphaned(
     let dead_for = config.reenqueue_orphaned_after().as_secs() as i64;
     let queue = config.queue().to_string();
     async move {
+        log::debug!(
+            "Running orphan re-enqueue query: queue={}, dead_for_secs={}",
+            queue,
+            dead_for
+        );
         match sqlx::query_file!("queries/backend/reenqueue_orphaned.sql", dead_for, queue,)
             .execute(&pool)
             .await
         {
             Ok(res) => {
-                if res.rows_affected() > 0 {
-                    log::info!(
-                        "Re-enqueued {} orphaned tasks that were being processed by dead workers",
-                        res.rows_affected()
-                    );
-                }
+                log::info!(
+                    "Orphan re-enqueue query completed: rows_affected={}",
+                    res.rows_affected()
+                );
                 Ok(res.rows_affected())
             }
             Err(e) => {
