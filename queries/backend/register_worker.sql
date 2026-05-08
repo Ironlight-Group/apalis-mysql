@@ -4,7 +4,7 @@ FROM DUAL
 WHERE NOT EXISTS (
     SELECT 1 FROM workers
     WHERE id = ?
-      AND NOW() - last_seen < ?
+      AND TIMESTAMPDIFF(SECOND, last_seen, NOW()) < ?
 )
 ON DUPLICATE KEY UPDATE
     worker_type = VALUES(worker_type),

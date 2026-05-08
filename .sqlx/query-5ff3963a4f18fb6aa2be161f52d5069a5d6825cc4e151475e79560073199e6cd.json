@@ -1,0 +1,12 @@
+{
+  "db_name": "MySQL",
+  "query": "INSERT INTO workers (id, worker_type, storage_name, layers, last_seen, started_at)\nSELECT ?, ?, ?, ?, NOW(), NOW()\nFROM DUAL\nWHERE NOT EXISTS (\n    SELECT 1 FROM workers\n    WHERE id = ?\n      AND TIMESTAMPDIFF(SECOND, last_seen, NOW()) < ?\n)\nON DUPLICATE KEY UPDATE\n    worker_type = VALUES(worker_type),\n    storage_name = VALUES(storage_name),\n    layers = VALUES(layers),\n    last_seen = NOW(),\n    started_at = NOW();\n",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 6
+    },
+    "nullable": []
+  },
+  "hash": "5ff3963a4f18fb6aa2be161f52d5069a5d6825cc4e151475e79560073199e6cd"
+}

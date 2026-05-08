@@ -22,7 +22,7 @@ WHERE
                     status = "Running"
                     OR status = "Queued"
                 )
-                AND UNIX_TIMESTAMP() - workers.last_seen >= ?
+                AND TIMESTAMPDIFF(SECOND, workers.last_seen, NOW()) >= ?
                 AND workers.worker_type = ?
         ) AS orphaned
     );
